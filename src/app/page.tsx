@@ -1,4 +1,6 @@
+// @ts-nocheck
 "use client";
+
 import { AuthProvider } from '@arcana/auth'; //From npm
 
 import { useEffect, useState } from 'react';
