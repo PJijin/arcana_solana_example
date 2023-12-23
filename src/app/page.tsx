@@ -1,113 +1,278 @@
-import Image from 'next/image'
+"use client";
+import { AuthProvider } from '@arcana/auth'; //From npm
 
-export default function Home() {
+import { useEffect, useState } from 'react';
+
+const MyComponent = () => {
+  const [provider, setProvider] = useState<any>(null);
+  const [auth, setAuth] = useState<any>(null);
+  const [from, setFrom] = useState('');
+  const [request, setRequest] = useState('');
+  const [result, setResult] = useState('');
+  const [account, setAccount] = useState('');
+
+  useEffect(() => {
+    const auth = new AuthProvider("xar_test_7fdc8f17b0900f0638dd7e415e387d10a12befba");
+    setAuth(auth);
+    setProvider(auth.provider)
+  }, []);
+
+
+
+  const logout = async () => {
+    console.log("Requesting logout");
+    try {
+      await auth.logout();
+      setAccount("-");
+    } catch (e) {
+      console.log({ e });
+    }
+  };
+
+  const getAccounts = async () => {
+    console.log("Requesting accounts");
+    try {
+      setRequest("getAccounts");
+      const accounts = await provider.request({
+        method: "getAccounts",
+        params: [''],
+      });
+      console.log({ accounts });
+      const fromAccount = accounts[0];
+      setFrom(fromAccount);
+      provider.publicKey = new window.solanaWeb3.PublicKey(fromAccount);
+      setAccount(fromAccount);
+      setResult(fromAccount);
+    } catch (e) {
+      console.error(e);
+      setResult(e);
+    }
+  };
+
+  const sign = async () => {
+    console.log("Requesting signature");
+    setRequest("signMessage");
+    const message = `To avoid digital dognappers, sign below to authenticate with CryptoCorgis`;
+    const encodedMessage = new TextEncoder().encode(message);
+
+    try {
+      const signature = await solanaP.signMessage(encodedMessage, "hex");
+      window.solanaSig = signature;
+      setResult(JSON.stringify(signature, null, 2));
+      console.log(signature);
+    } catch (e) {
+      console.error(e);
+      setResult(e);
+    }
+  };
+
+  const connect = async () => {
+    console.log("Requesting connect wallet");
+    setRequest("connect_wallet");
+    try {
+      const connectedProvider = await auth.connect();
+      console.log({ connectedProvider });
+      await getAccounts();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const signTransaction = async () => {
+    try {
+      setRequest("signTransaction");
+      console.log(provider);
+      const pk = new window.solanaWeb3.PublicKey(
+        (
+          await provider.request({
+            method: "getAccounts",
+            params: [],
+          })
+        )[0],
+      );
+      const connection = new window.solanaWeb3.Connection(
+        window.solanaWeb3.clusterApiUrl("testnet"),
+      );
+      let minRent = await connection.getMinimumBalanceForRentExemption(0);
+      let blockhash = await connection
+        .getLatestBlockhash()
+        .then((res) => res.blockhash);
+
+      const payer = solanaP; // Arcana Solana API
+
+      const instructions = [
+        window.solanaWeb3.SystemProgram.transfer({
+          fromPubkey: pk,
+          toPubkey: pk,
+          lamports: minRent,
+        }),
+      ];
+      const messageV0 = new window.solanaWeb3.TransactionMessage({
+        payerKey: pk,
+        recentBlockhash: blockhash,
+        instructions,
+      }).compileToV0Message();
+      let transaction = new window.solanaWeb3.VersionedTransaction(messageV0);
+
+      const signature = await payer.signTransaction(transaction);
+      console.log(signature);
+      setResult(JSON.stringify(signature, null, 2));
+    } catch (e) {
+      console.error(e);
+      setResult(e);
+    }
+  };
+
+  const signAndSendTransaction = async () => {
+    try {
+      setRequest("signAndSendTransaction");
+
+      const pk = new window.solanaWeb3.PublicKey(
+        (
+          await provider.request({
+            method: "getAccounts",
+            params: [],
+          })
+        )[0],
+      );
+      const connection = new window.solanaWeb3.Connection(
+        window.solanaWeb3.clusterApiUrl("testnet"),
+      );
+      let minRent = await connection.getMinimumBalanceForRentExemption(0);
+      let blockhash = await connection
+        .getLatestBlockhash()
+        .then((res) => res.blockhash);
+
+      const payer = solanaP; // Arcana Solana API
+
+      const instructions = [
+        window.solanaWeb3.SystemProgram.transfer({
+          fromPubkey: pk,
+          toPubkey: pk,
+          lamports: minRent,
+        }),
+      ];
+
+      const messageV0 = new window.solanaWeb3.TransactionMessage({
+        payerKey: pk,
+        recentBlockhash: blockhash,
+        instructions,
+      }).compileToV0Message();
+      let transaction = new window.solanaWeb3.VersionedTransaction(messageV0);
+
+      const transactionSent = await payer.signAndSendTransaction(transaction);
+
+      console.log({ transactionSent });
+      setResult(JSON.stringify(transactionSent, null, 2));
+    } catch (e) {
+      console.error(e);
+      setResult(e);
+    }
+  };
+
+  const signAllTransactions = async () => {
+    try {
+      setRequest("signAllTransactions");
+
+      const pk = new window.solanaWeb3.PublicKey(
+        (
+          await provider.request({
+            method: "getAccounts",
+            params: [],
+          })
+        )[0],
+      );
+      const connection = new window.solanaWeb3.Connection(
+        window.solanaWeb3.clusterApiUrl("testnet"),
+      );
+      let minRent = await connection.getMinimumBalanceForRentExemption(0);
+      let blockhash = await connection
+        .getLatestBlockhash()
+        .then((res) => res.blockhash);
+
+      const payer = solanaP; // Arcana Solana API
+
+      const instructions = [
+        window.solanaWeb3.SystemProgram.transfer({
+          fromPubkey: pk,
+          toPubkey: pk,
+          lamports: minRent,
+        }),
+      ];
+
+      const messageV0 = new window.solanaWeb3.TransactionMessage({
+        payerKey: pk,
+        recentBlockhash: blockhash,
+        instructions,
+      }).compileToV0Message();
+      let transaction = new window.solanaWeb3.VersionedTransaction(messageV0);
+
+      const transactionSent = await payer.signAllTransactions([
+        transaction,
+        transaction,
+        transaction,
+      ]);
+
+      console.log({ transactionSent });
+      setResult(JSON.stringify(transactionSent, null, 2));
+    } catch (e) {
+      console.error(e);
+      setResult(e);
+    }
+  };
+
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
+    <>
+      <div className="mx-auto max-w-screen-xl px-1 md:px-4 sm:px-6 relative ">
+
+        <div className="flex items-center justify-between  mt-20 ">
+          <h1 className="text-3xl font-semibold">Arcana Solana API</h1>
+          <a href="https://docs.arcana.network/quick-start/solana-quick-start" target='_BLANK' className='text-gray-400 hover:text-gray-900'>
+            Docs
           </a>
         </div>
+        <div className='rounded-lg bg-white shadow-sm'>
+          <div className="grid grid-cols-3 gap-5 mt-10 p-10">
+            <div className='flex flex-col space-y-3'>
+              <button className="bg-[#f3f4f6] rounded-md py-2" onClick={connect}>Connect</button>
+              <button className="bg-[#f3f4f6] rounded-md py-2" onClick={getAccounts}>Get Accounts</button>
+              <button className="bg-[#f3f4f6] rounded-md py-2" onClick={sign}>Sign Message</button>
+              <button className="bg-[#f3f4f6] rounded-md py-2" onClick={signAndSendTransaction}>
+                Sign & Send Transaction
+              </button>
+              <button className="bg-[#f3f4f6] rounded-md py-2" onClick={signTransaction}>
+                Sign Transaction
+              </button>
+              <button className="bg-[#f3f4f6] rounded-md py-2" onClick={signAllTransactions}>
+                Sign All Transactions
+              </button>
+              <button className="bg-[#f3f4f6] rounded-md py-2" onClick={logout}>Logout</button>
+            </div>
+            <section>
+              <h2 className="section-heading">STATUS</h2>
+              <div className="pill">
+                <span className="sub-heading">Current account: </span>
+                <span className="sub-value" id="account">{account ?? '-'}</span>
+                <br />
+              </div>
+              <div className="pill">
+                <span className="sub-heading">REQ: </span>
+                <span className="sub-value" id="request">{request}</span>
+                <br />
+              </div>
+              <div className="pill">
+                <span className="sub-heading">RESULT: </span>
+                <pre className="sub-value" id="result">{JSON.stringify(result)}</pre>
+                <br />
+              </div>
+            </section>
+
+          </div>
+        </div>
       </div>
+    </>
+  );
+};
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
-}
+export default MyComponent;
